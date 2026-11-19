@@ -1,11 +1,3 @@
-"""CIFAR-10 image classification: MLP baseline vs. custom CNN vs. ResNet50 transfer learning.
-
-Examples
---------
-    python src/cifar10_classifier.py --model all
-    python src/cifar10_classifier.py --model cnn --epochs 30
-    python src/cifar10_classifier.py --smoke-test        # tiny random-data run, no download
-"""
 
 from __future__ import annotations
 
@@ -15,7 +7,7 @@ from pathlib import Path
 
 import matplotlib
 
-matplotlib.use("Agg")  # headless-safe: figures are saved, not shown
+matplotlib.use("Agg") 
 import matplotlib.pyplot as plt
 import numpy as np
 from tensorflow import keras
@@ -28,9 +20,6 @@ CLASS_NAMES = ["airplane", "automobile", "bird", "cat", "deer",
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
-# --------------------------------------------------------------------------- #
-# Data
-# --------------------------------------------------------------------------- #
 def load_data(smoke_test: bool = False):
     """Return ``(x_train, y_train), (x_test, y_test)`` with pixel values in [0, 255]."""
     if smoke_test:
@@ -42,9 +31,6 @@ def load_data(smoke_test: bool = False):
     return (x_train.astype("float32"), y_train), (x_test.astype("float32"), y_test)
 
 
-# --------------------------------------------------------------------------- #
-# Models  (inputs are raw 0-255 pixels; every model rescales internally)
-# --------------------------------------------------------------------------- #
 def build_mlp() -> keras.Model:
     """Baseline: a single hidden layer on flattened pixels."""
     return keras.Sequential([
@@ -89,7 +75,7 @@ def build_resnet50(pretrained: bool = True) -> keras.Model:
     base.trainable = False
     return keras.Sequential([
         keras.Input((32, 32, 3)),
-        layers.UpSampling2D(8),  # 32x32 -> 256x256
+        layers.UpSampling2D(8),  
         layers.Lambda(keras.applications.resnet50.preprocess_input),
         base,
         layers.GlobalAveragePooling2D(),
@@ -104,10 +90,6 @@ BUILDERS = {"mlp": build_mlp, "cnn": build_cnn, "resnet50": build_resnet50}
 DEFAULT_EPOCHS = {"mlp": 20, "cnn": 30, "resnet50": 10}
 LEARNING_RATES = {"mlp": 1e-3, "cnn": 1e-3, "resnet50": 1e-3}
 
-
-# --------------------------------------------------------------------------- #
-# Training / evaluation
-# --------------------------------------------------------------------------- #
 def plot_history(history: keras.callbacks.History, name: str, out_dir: Path) -> None:
     fig, axes = plt.subplots(1, 2, figsize=(11, 4))
     for ax, key, title in zip(axes, ["loss", "accuracy"], ["Loss", "Accuracy"]):
